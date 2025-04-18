@@ -70,18 +70,18 @@ const Loader = styled(Loader2)`
 `;
 
 export const Button = styled(_Button)`
-    background-color: ${thv.button.back};
-    color: ${thv.button.front};
+    background-color: #1877F2;
+    color: white;
     border: 0;
     border-radius: ${p => p.theme.borderRadius};
     padding: 1rem 3rem;
     font-weight: 600;
     outline: 0;
     min-width: 12rem;
-    border: 1px solid ${thv.button.back};
+    border: 1px solid #1877F2;
     :hover {
-        color: ${p => p.theme.button.hover?.front || p.theme.button.front};
-        background: ${p => p.theme.button.hover?.back || p.theme.button.back};
+        background-color: #166FE5;
+        color: white;
     }
 
     :disabled {
@@ -95,17 +95,18 @@ export const FullWidthButton = styled(Button)`
 `;
 
 export const SecondaryButton = styled(_Button)`
-    background-color: ${thv.button.front};
-    color: ${thv.button.back};
+    background-color: white;
+    color: #1877F2;
     border: 0;
     border-radius: ${p => p.theme.borderRadius};
     padding: 1rem 3rem;
     font-weight: 600;
     outline: 0;
     min-width: 12rem;
-    border: 1px solid ${thv.button.back};
+    border: 1px solid #1877F2;
     :hover {
-        background: ${p => p.theme.gray(100)};
+        background: #1877F2;
+        color: white;
     }
 `;
 
@@ -120,15 +121,15 @@ export const IconButton = styled.button<{ isActive?: boolean }>`
     border-radius: 100%;
     font-weight: 600;
     outline: 0;
-    width: 2.4rem;
-    height: 2.4rem;
+    width: 3.2rem;
+    height: 3.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
     background: ${p => p.theme.button.icon.back || 'transparent'};
     svg {
-        width: 2rem;
-        height: 2rem;
+        width: 2.8rem;
+        height: 2.8rem;
     }
     :hover {
         box-shadow: none;

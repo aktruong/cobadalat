@@ -88,7 +88,7 @@ const CartFooterWrapper = styled(Stack)<{ haveItems?: boolean }>`
 const StyledButton = styled(Button)<{ dark?: boolean }>`
     appearance: none;
     border: none;
-    background: ${p => (p.dark ? p.theme.gray(1000) : p.theme.gray(0))};
+    background: ${p => p.dark ? '#1877F2' : p.theme.gray(0)};
 
     width: 100%;
     display: flex;
@@ -97,11 +97,15 @@ const StyledButton = styled(Button)<{ dark?: boolean }>`
 
     padding: 1.6rem 0.8rem;
 
-    color: ${p => (p.dark ? p.theme.gray(0) : p.theme.gray(1000))};
+    color: ${p => p.dark ? p.theme.gray(0) : p.theme.gray(1000)};
     text-align: center;
     text-transform: uppercase;
     font-weight: 500;
     font-size: 1.6rem;
-    border: 1px solid ${p => p.theme.gray(1000)};
+    border: 1px solid ${p => p.dark ? '#1877F2' : p.theme.gray(1000)};
     border-radius: ${p => p.theme.borderRadius};
+
+    &:hover {
+        background: ${p => p.dark ? '#166FE5' : p.theme.gray(100)};
+    }
 `;

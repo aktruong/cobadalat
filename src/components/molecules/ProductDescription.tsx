@@ -15,14 +15,14 @@ export const ProductDescription: React.FC<{
     );
 
     return (
-        <Stack w100 column gap="2rem" style={{ marginTop: '3.5rem' }}>
+        <Stack w100 column gap="1rem" style={{ marginTop: '1rem' }}>
             {data.map((entry, index) => (
                 <GridWrapper key={index} w100 column>
                     <GridTitle onClick={() => setOpen({ ...open, [entry.title]: !open[entry.title] })}>
-                        <TP size="1.5rem" weight={400}>
+                        <TP size="2rem" weight={600}>
                             {entry.title}
                         </TP>
-                        {open[entry.title] ? <MinusIcon size="1.5rem" /> : <PlusIcon size="1.5rem" />}
+                        {open[entry.title] ? <MinusIcon size="2rem" /> : <PlusIcon size="2rem" />}
                     </GridTitle>
                     <Grid open={open[entry.title]}>
                         <GridEntry>{entry.children}</GridEntry>
@@ -38,7 +38,7 @@ const Line = styled.div`
     width: 100%;
     height: 1px;
     background-color: ${({ theme }) => theme.gray(100)};
-    margin-top: 2rem;
+    margin-top: 1rem;
 `;
 
 const GridWrapper = styled(Stack)``;

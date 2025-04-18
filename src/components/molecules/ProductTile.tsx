@@ -1,59 +1,67 @@
-import { Stack, Link, ProductImageGrid, TP } from '@/src/components/atoms/';
+import { Stack, Link, TP } from '@/src/components/atoms/';
 import { CollectionTileType, ProductSearchType } from '@/src/graphql/selectors';
 import { priceFormatter } from '@/src/util/priceFormatter';
 import styled from '@emotion/styled';
 import React from 'react';
+import Image from 'next/image';
+import { useTranslation } from 'next-i18next';
+import { useCart } from '@/src/state/cart';
 
 export const ProductTile: React.FC<{
     product: ProductSearchType;
     collections: CollectionTileType[];
     lazy?: boolean;
 }> = ({ product, collections, lazy }) => {
-    const priceValue =
-        'value' in product.priceWithTax
-            ? priceFormatter(product.priceWithTax.value, product.currencyCode)
-            : product.priceWithTax.min === product.priceWithTax.max
-              ? priceFormatter(product.priceWithTax.min, product.currencyCode)
-              : `${priceFormatter(product.priceWithTax.min, product.currencyCode)} - ${priceFormatter(
-                    product.priceWithTax.max,
-                    product.currencyCode,
-                )}`;
+    const { t } = useTranslation('common');
+    const { addToCart } = useCart();
+
+    const getPriceValue = () => {
+        if (!product.priceWithTax) return '';
+        
+        if (typeof product.priceWithTax === 'number') {
+            return priceFormatter(product.priceWithTax, product.currencyCode);
+        }
+
+        if ('value' in product.priceWithTax) {
+            return priceFormatter(product.priceWithTax.value, product.currencyCode);
+        }
+
+        if (product.priceWithTax.min === product.priceWithTax.max) {
+            return priceFormatter(product.priceWithTax.min, product.currencyCode);
+        }
+
+        return `${priceFormatter(product.priceWithTax.min, product.currencyCode)} - ${priceFormatter(
+            product.priceWithTax.max,
+            product.currencyCode,
+        )}`;
+    };
+
+    const priceValue = getPriceValue();
+
+    const handleAddToCart = () => {
+        if (product.productVariantId) {
+            addToCart(product.productVariantId, 1, true);
+        }
+    };
 
     return (
         <Main column gap="1rem">
             <Link href={`/products/${product.slug}/`}>
-                <ProductImageGrid
-                    loading={lazy ? 'lazy' : undefined}
-                    src={product.productAsset?.preview}
-                    alt={product.productName}
-                    title={product.productName}
-                />
+                <ImageWrapper>
+                    <Image
+                        src={product.productAsset?.preview || '/images/placeholder.png'}
+                        alt={product.productName}
+                        width={300}
+                        height={300}
+                        loading={lazy ? 'lazy' : 'eager'}
+                        style={{
+                            width: '100%',
+                            height: 'auto',
+                            objectFit: 'cover'
+                        }}
+                    />
+                </ImageWrapper>
             </Link>
-            <Categories gap="0.5rem">
-                {product.collectionIds
-                    .filter((cId, index) => product.collectionIds.indexOf(cId) === index)
-                    .map(cId => collections.find(c => c.id === cId))
-                    .filter(c => c && c.slug !== 'all' && c.slug !== 'search')
-                    .map(c => {
-                        const href =
-                            c?.parent?.slug !== '__root_collection__'
-                                ? `/collections/${c?.parent?.slug}/${c?.slug}`
-                                : `/collections/${c?.slug}`;
-
-                        return (
-                            <CategoryBlock href={href} key={c?.slug}>
-                                <TP
-                                    size="1.25rem"
-                                    color="contrast"
-                                    upperCase
-                                    weight={500}
-                                    style={{ letterSpacing: '0.5px' }}>
-                                    {c?.name}
-                                </TP>
-                            </CategoryBlock>
-                        );
-                    })}
-            </Categories>
             <Stack column gap="0.25rem">
                 <Stack column gap="0.5rem">
                     <Link href={`/products/${product.slug}/`}>
@@ -62,49 +70,94 @@ export const ProductTile: React.FC<{
                 </Stack>
                 <ProductPrice gap="0.25rem">
                     <ProductPriceValue>{priceValue}</ProductPriceValue>
+                    <AddToCartButton onClick={handleAddToCart}>
+                        Thêm
+                    </AddToCartButton>
                 </ProductPrice>
             </Stack>
         </Main>
     );
 };
-const Categories = styled(Stack)`
-    position: absolute;
-    top: 0;
-    left: 0;
-    flex-wrap: wrap;
-`;
 
-const ProductName = styled.div`
-    font-weight: 400;
-    color: ${p => p.theme.gray(900)};
-    font-size: 1.5rem;
-`;
+const ImageWrapper = styled.div`
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
+    background: ${p => p.theme.gray(100)};
 
-const CategoryBlock = styled(Link)`
-    padding: 1rem;
-
-    background-color: ${({ theme }) => theme.tile.background};
-
-    @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
-        :hover {
-            background-color: ${({ theme }) => theme.gray(500)};
-        }
+    img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 `;
 
+const ProductName = styled.div`
+    font-weight: 700;
+    color: ${p => p.theme.gray(900)};
+    font-size: 2.25rem;
+`;
+
 const ProductPrice = styled(Stack)`
-    font-size: 1.25rem;
+    font-size: 1.875rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 `;
+
 const ProductPriceValue = styled(Stack)`
-    font-weight: 400;
+    font-weight: 600;
 `;
+
 const Main = styled(Stack)`
-    font-size: 1.5rem;
+    font-size: 2.25rem;
     position: relative;
     width: 100%;
     font-weight: 500;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    padding: 1.5rem;
+    background-color: ${p => p.theme.gray(0)};
+    
+    &:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
 
     @media (min-width: ${({ theme }) => theme.breakpoints.xl}) {
         max-width: 35.5rem;
+    }
+`;
+
+const AddToCartButton = styled.button`
+    background-color: #1877F2;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 8rem;
+    
+    &:hover {
+        background-color: #166FE5;
+        transform: translateY(-1px);
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: ${p => p.theme.breakpoints.sm}) {
+        padding: 1rem 2rem;
+        font-size: 2rem;
+        min-width: 10rem;
     }
 `;

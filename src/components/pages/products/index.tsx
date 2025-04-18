@@ -20,6 +20,7 @@ import { ProductDescription } from '@/src/components/molecules/ProductDescriptio
 import { storefrontApiQuery } from '@/src/graphql/client';
 import { useChannels } from '@/src/state/channels';
 import { ProductVariantTileType, productVariantTileSelector } from '@/src/graphql/selectors';
+import { priceFormatter } from '@/src/util/priceFormatter';
 
 export const ProductPage: React.FC<InferGetStaticPropsType<typeof getStaticProps>> = props => {
     const { t } = useTranslation('products');
@@ -74,8 +75,8 @@ export const ProductPage: React.FC<InferGetStaticPropsType<typeof getStaticProps
                                 name={product?.name}
                             />
                         </StickyLeft>
-                        <StyledStack w100 column gap="2rem">
-                            <ProductInfoStack w100 column gap="1rem">
+                        <StyledStack w100 column gap="0.5rem">
+                            <ProductInfoStack w100 column gap="0.5rem">
                                 {product?.collections
                                     .filter(c => c.slug !== 'all' && c.slug !== 'search')
                                     .sort(() => -1)
@@ -88,7 +89,7 @@ export const ProductPage: React.FC<InferGetStaticPropsType<typeof getStaticProps
                                         return (
                                             <CategoryBlock href={href} key={c.slug}>
                                                 <TP
-                                                    size="1.25rem"
+                                                    size="1.5rem"
                                                     color="subtitle"
                                                     upperCase
                                                     weight={500}
@@ -98,18 +99,18 @@ export const ProductPage: React.FC<InferGetStaticPropsType<typeof getStaticProps
                                             </CategoryBlock>
                                         );
                                     })}
-                                <TH1 size="2.5rem">{product?.name}</TH1>
+                                <TH1 size="3rem">{product?.name}</TH1>
                                 {variant && <Price price={variant.priceWithTax} currencyCode={variant.currencyCode} />}
                             </ProductInfoStack>
-                            <Stack w100>
-                                {product && product.variants.length > 1 ? (
+                            {product && product.variants.length > 1 && (
+                                <Stack w100>
                                     <ProductOptions
                                         productOptionsGroups={productOptionsGroups}
                                         handleClick={handleOptionClick}
                                         addingError={addingError}
                                     />
-                                ) : null}
-                            </Stack>
+                                </Stack>
+                            )}
                             <Stack w100 gap="1rem" column>
                                 {/* Ẩn phần hiển thị stock level */}
                                 {/* {variant?.stockLevel ? (
@@ -127,6 +128,21 @@ export const ProductPage: React.FC<InferGetStaticPropsType<typeof getStaticProps
                                     </Stack>
                                 ) : null} */}
                             </Stack>
+                            <ProductDescription
+                                defaultOpenIndexes={[1]}
+                                data={[
+                                    {
+                                        title: "Mô tả",
+                                        children: (
+                                            <TP 
+                                                color="subtitle" 
+                                                style={{ marginTop: '0.25rem', fontSize: '1.5rem' }}
+                                                dangerouslySetInnerHTML={{ __html: product?.description || '' }}
+                                            />
+                                        ),
+                                    },
+                                ]}
+                            />
                             {!variant ? null : Number(variant.stockLevel) <= 0 ? (
                                 <NotifyMeForm />
                             ) : (
@@ -134,48 +150,10 @@ export const ProductPage: React.FC<InferGetStaticPropsType<typeof getStaticProps
                                     <FullWidthButton
                                         style={{ textTransform: 'uppercase', padding: '1.5rem' }}
                                         onClick={handleAddToCart}>
-                                        {t('add-to-cart')}
+                                        {`Thêm vào giỏ (${priceFormatter(variant.priceWithTax, variant.currencyCode)})`}
                                     </FullWidthButton>
-                                    <FullWidthSecondaryButton
-                                        style={{ textTransform: 'uppercase', padding: '1.5rem' }}
-                                        onClick={handleBuyNow}>
-                                        {t('buy-now')}
-                                    </FullWidthSecondaryButton>
                                 </Stack>
                             )}
-                            <ProductDescription
-                                defaultOpenIndexes={[1]}
-                                data={[
-                                    {
-                                        title: t('details'),
-                                        children: (
-                                            <Stack column style={{ marginTop: '1.5rem' }}>
-                                                <Stack>
-                                                    <TP color="subtitle">{t('sku')}</TP>
-                                                    <TP color="subtitle">&nbsp;{variant?.sku}</TP>
-                                                </Stack>
-                                                {variant?.options.length ? (
-                                                    <Stack column>
-                                                        {variant?.options.map(option => (
-                                                            <Stack key={option.code}>
-                                                                <TP color="subtitle">{option.name}</TP>
-                                                            </Stack>
-                                                        ))}
-                                                    </Stack>
-                                                ) : null}
-                                            </Stack>
-                                        ),
-                                    },
-                                    {
-                                        title: t('description'),
-                                        children: (
-                                            <TP color="subtitle" style={{ marginTop: '1.5rem' }}>
-                                                {product?.description}
-                                            </TP>
-                                        ),
-                                    },
-                                ]}
-                            />
                         </StyledStack>
                     </Main>
                     <ProductPageProductsSlider
@@ -194,8 +172,10 @@ const CategoryBlock = styled(Link)`
 `;
 
 const ProductInfoStack = styled(Stack)`
-    border-bottom: 2px solid ${({ theme }) => theme.gray(100)};
-    padding-bottom: 7.5rem;
+    padding-bottom: 0.5rem;
+    & > * {
+        font-size: 1.2em;
+    }
 `;
 
 const Wrapper = styled(Stack)`

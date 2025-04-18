@@ -11,12 +11,32 @@ export const getStaticProps = async (ctx: ContextModel) => {
     const r = await makeStaticProps(['common', 'homepage'])(ctx);
     const api = SSGQuery(r.context);
 
-    const products = await api({
-        search: [
-            { input: { take: 4, groupByProduct: true, sort: { price: SortOrder.ASC } } },
-            { items: ProductSearchSelector },
-        ],
-    });
+    // Lấy tất cả các collection
+    const collections = await getCollections(r.context);
+    const navigation = arrayToTree(collections);
+
+    // Lấy sản phẩm cho mỗi collection
+    const collectionsWithProducts = await Promise.all(
+        collections.map(async (collection) => {
+            const products = await api({
+                search: [
+                    { 
+                        input: { 
+                            collectionSlug: collection.slug,
+                            take: 4, 
+                            groupByProduct: true, 
+                            sort: { price: SortOrder.ASC } 
+                        } 
+                    },
+                    { items: ProductSearchSelector },
+                ],
+            });
+            return {
+                ...collection,
+                products: products.search.items
+            };
+        })
+    );
 
     const sliders = await Promise.all(
         slugsOfBestOf
@@ -30,15 +50,11 @@ export const getStaticProps = async (ctx: ContextModel) => {
             .filter((x): x is Promise<HomePageSlidersType> => !!x),
     );
 
-    const collections = await getCollections(r.context);
-    const navigation = arrayToTree(collections);
-
     const returnedStuff = {
         props: {
             ...r.props,
             ...r.context,
-            products: products.search.items,
-            categories: collections,
+            collections: collectionsWithProducts,
             navigation,
             sliders,
         },

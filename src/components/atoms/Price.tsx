@@ -16,8 +16,8 @@ export const Price: React.FC<PriceProps> = ({
     discountPrice,
     currencyCode,
     quantity = 1,
-    size = '1.5rem',
-    weight = 400,
+    size = '2.5rem',
+    weight = 600,
 }) => {
     const differentPrices = !!(discountPrice && price * quantity !== discountPrice * quantity);
     return (
