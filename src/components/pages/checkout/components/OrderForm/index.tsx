@@ -374,7 +374,21 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                                 <Stack w100 column gap="1.5rem">
                                     <Stack w100 gap="1.5rem">
                                         <Input
-                                            {...register('firstName')}
+                                            {...register('firstName', {
+                                                onChange: e => {
+                                                    const fullName = e.target.value.trim();
+                                                    if (fullName) {
+                                                        // Tách họ và tên
+                                                        const nameParts = fullName.split(' ');
+                                                        const firstName = nameParts[0];
+                                                        const lastName = nameParts.slice(1).join(' ');
+                                                        
+                                                        // Cập nhật giá trị cho các trường
+                                                        setValue('firstName', firstName);
+                                                        setValue('lastName', lastName);
+                                                    }
+                                                }
+                                            })}
                                             placeholder={t('orderForm.placeholders.firstName')}
                                             label={t('orderForm.firstName')}
                                             error={errors.firstName}
@@ -390,21 +404,41 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                                     </Stack>
                                     <Stack w100 gap="1.5rem">
                                         <Input
+                                            {...register('fullName', {
+                                                onChange: e => {
+                                                    const fullName = e.target.value.trim();
+                                                    if (fullName) {
+                                                        // Tách họ và tên
+                                                        const nameParts = fullName.split(' ');
+                                                        const firstName = nameParts[0];
+                                                        const lastName = nameParts.slice(1).join(' ');
+                                                        
+                                                        // Cập nhật giá trị cho các trường
+                                                        setValue('firstName', firstName);
+                                                        setValue('lastName', lastName);
+                                                    }
+                                                }
+                                            })}
+                                            placeholder={t('orderForm.placeholders.fullName')}
+                                            label={t('orderForm.fullName')}
+                                            error={errors.fullName}
+                                            required
+                                        />
+                                        <Input
                                             {...register('phoneNumber', {
-                                                onChange: e => (e.target.value = e.target.value.replace(/[^0-9]/g, '')),
+                                                onChange: e => {
+                                                    const phone = e.target.value.replace(/[^0-9]/g, '');
+                                                    e.target.value = phone;
+                                                    // Tự sinh email từ số điện thoại
+                                                    if (phone) {
+                                                        setValue('emailAddress', `${phone}@cahoicoba.com`);
+                                                    }
+                                                },
                                             })}
                                             placeholder={t('orderForm.placeholders.phoneNumber')}
                                             type="tel"
                                             label={t('orderForm.phone')}
                                             error={errors.phoneNumber}
-                                        />
-                                        <Input
-                                            {...register('emailAddress')}
-                                            placeholder={t('orderForm.placeholders.emailAddress')}
-                                            label={t('orderForm.emailAddress')}
-                                            error={errors.emailAddress}
-                                            required
-                                            disabled={activeCustomer?.id ? true : false}
                                         />
                                     </Stack>
                                 </Stack>

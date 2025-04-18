@@ -32,11 +32,11 @@ export const StyledProductImage = styled.img<{
 }>`
     height: ${p =>
         p.size === 'tile'
-            ? '36rem'
+            ? '24rem'
             : p.size === 'popup'
-              ? '48rem'
+              ? '32rem'
               : p.size === 'detail'
-                ? '60rem'
+                ? '52rem'
                 : p.size === 'thumbnail-big'
                   ? '16rem'
                   : '8rem'};

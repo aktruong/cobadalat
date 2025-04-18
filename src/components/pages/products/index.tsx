@@ -129,14 +129,14 @@ export const ProductPage: React.FC<InferGetStaticPropsType<typeof getStaticProps
                                 ) : null} */}
                             </Stack>
                             <ProductDescription
-                                defaultOpenIndexes={[1]}
+                                defaultOpenIndexes={[0]}
                                 data={[
                                     {
                                         title: "Mô tả",
                                         children: (
                                             <TP 
                                                 color="subtitle" 
-                                                style={{ marginTop: '0.25rem', fontSize: '1.5rem' }}
+                                                style={{ marginTop: '0.25rem', fontSize: '1.95rem' }}
                                                 dangerouslySetInnerHTML={{ __html: product?.description || '' }}
                                             />
                                         ),
