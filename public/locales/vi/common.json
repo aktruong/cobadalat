@@ -1,0 +1,112 @@
+{
+    "breadcrumbs": {
+        "home": "Trang chủ"
+    },
+    "announcements-bar": [
+        "CỬA HÀNG SẢN PHẨM TỐT NHẤT",
+        "MIỄN PHÍ VẬN CHUYỂN CHO ĐƠN HÀNG TRÊN 2.000.000Đ",
+        "THANH TOÁN AN TOÀN",
+        "CHÍNH SÁCH ĐỔI TRẢ 30 NGÀY"
+    ],
+    "shop": "Cửa hàng Demo",
+    "title": "Xin chào",
+    "search-products": "Tìm kiếm sản phẩm",
+    "made-by": "Được tạo bởi VendureAgency.com 2023",
+    "select-category": "Chọn danh mục",
+    "cart": "Giỏ hàng",
+    "cart-summary": "Tóm tắt giỏ hàng",
+    "your-cart": "Giỏ hàng của bạn",
+    "items": "sản phẩm",
+    "proceed-to-checkout": "Tiến hành thanh toán",
+    "continue-shopping": "Tiếp tục mua sắm",
+    "price": "Giá",
+    "search-for-best-products": "Tìm kiếm sản phẩm tốt nhất",
+    "discount": "Giảm giá",
+    "discounts-errors": {
+        "coupon-code-invalid": "Không tìm thấy mã giảm giá",
+        "something-went-wrong": "Đã xảy ra lỗi",
+        "enter-code": "Vui lòng nhập mã"
+    },
+    "shipping": "Vận chuyển",
+    "subtotal": "Tạm tính",
+    "total": "Tổng cộng",
+    "coupon-code": "Mã:",
+    "empty-cart": "Giỏ hàng của bạn đang trống",
+    "remove": "Xóa",
+    "add-to-cart": "Thêm vào giỏ",
+    "buy-now": "Mua ngay",
+    "featured-products": "Sản phẩm nổi bật",
+    "best-collections": "Bộ sưu tập tốt nhất",
+    "commonError": "Đã xảy ra lỗi",
+    "send": "Gửi",
+    "search-results": "Kết quả tìm kiếm cho:",
+    "search-results-header": "Kết quả tìm kiếm",
+    "search-results-total": "Xem {{totalItems}} kết quả cho <1>{{searchQuery}}</1>",
+    "search-query-to-short": "Từ khóa tìm kiếm phải có ít nhất 3 ký tự",
+    "search-results-no-results": "Không có kết quả cho <1>{{searchQuery}}</1>",
+    "search-results-loading": "Đang tải kết quả tìm kiếm...",
+    "popular-searches-heading": "Tìm kiếm phổ biến",
+    "cart-empty": "Giỏ hàng của bạn đang trống",
+    "select-options": "Vui lòng chọn tùy chọn",
+    "shipping-protection": {
+        "title": "Bảo vệ vận chuyển",
+        "subtitle": "Từ hư hỏng, mất mát & trộm cắp với giá {{value}}"
+    },
+    "navigation": {
+        "manageAccount": "Quản lý tài khoản",
+        "manageAddresses": "Quản lý địa chỉ",
+        "manageOrders": "Quản lý đơn hàng",
+        "logout": "Đăng xuất"
+    },
+    "orderStates": {
+        "Created": "Đã tạo",
+        "Draft": "Nháp",
+        "AddingItems": "Đang thêm sản phẩm",
+        "Cancelled": "Đã hủy",
+        "ArrangingPayment": "Đang sắp xếp thanh toán",
+        "PaymentAuthorized": "Thanh toán đã được ủy quyền",
+        "PaymentSettled": "Thanh toán đã được xử lý",
+        "PartiallyShipped": "Đã giao một phần",
+        "Shipped": "Đã giao hàng",
+        "PartiallyDelivered": "Đã giao một phần",
+        "Delivered": "Đã giao hàng",
+        "Modifying": "Đang sửa đổi",
+        "ArrangingAdditionalPayment": "Thanh toán bổ sung"
+    },
+    "paymentStates": {
+        "Authorized": "Đã ủy quyền",
+        "Settled": "Đã xử lý",
+        "Declined": "Đã từ chối"
+    },
+    "notifyMe": {
+        "invalidEmail": "Vui lòng nhập email hợp lệ",
+        "backendError": "Không thể đăng ký, vui lòng thử lại sau",
+        "placeholder": "Thông báo cho tôi"
+    },
+    "errors": {
+        "clearErrors": "Xóa lỗi",
+        "backend": {
+            "UNKNOWN_ERROR": "Lỗi không xác định",
+            "NATIVE_AUTH_STRATEGY_ERROR": "Lỗi xác thực",
+            "INVALID_CREDENTIALS_ERROR": "Thông tin đăng nhập không hợp lệ",
+            "ORDER_STATE_TRANSITION_ERROR": "Lỗi chuyển trạng thái đơn hàng",
+            "EMAIL_ADDRESS_CONFLICT_ERROR": "Xung đột địa chỉ email",
+            "GUEST_CHECKOUT_ERROR": "Lỗi thanh toán khách",
+            "ORDER_LIMIT_ERROR": "Lỗi giới hạn đơn hàng",
+            "NEGATIVE_QUANTITY_ERROR": "Lỗi số lượng âm",
+            "INSUFFICIENT_STOCK_ERROR": "Lỗi không đủ hàng",
+            "COUPON_CODE_INVALID_ERROR": "Lỗi mã giảm giá không hợp lệ",
+            "COUPON_CODE_EXPIRED_ERROR": "Lỗi mã giảm giá đã hết hạn",
+            "COUPON_CODE_LIMIT_ERROR": "Lỗi giới hạn mã giảm giá"
+        }
+    },
+    "footer": {
+        "notify": {
+            "header": "",
+            "paragraph": "",
+            "placeholder": "",
+            "alert": ""
+        },
+        "law": []
+    }
+} 

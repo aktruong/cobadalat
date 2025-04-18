@@ -1,0 +1,11 @@
+user.name=Root
+user.email=root@localhost
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+remote.origin.url=https://github.com/aktruong/cobadalat.git
+remote.origin.fetch=+refs/heads/main:refs/remotes/origin/main
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
+branch.main.vscode-merge-base=origin/main

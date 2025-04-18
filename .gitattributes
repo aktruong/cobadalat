@@ -1,0 +1,14 @@
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.js linguist-language=JavaScript
+*.jsx linguist-language=JavaScript
+*.json linguist-language=JSON
+*.md linguist-language=Markdown
+*.css linguist-language=CSS
+*.scss linguist-language=SCSS
+*.html linguist-language=HTML
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+*.lock linguist-generated=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true 
