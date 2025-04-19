@@ -20,12 +20,11 @@ export const CheckoutCarousel: React.FC<CheckoutCarouselProps> = ({ alsoBoughtPr
         return (
             <ProductVariantTile
                 lazy
-                withoutRedirect
-                variant={variant}
+                product={variant}
                 key={variant.id}
                 addToCart={{
                     text: t('orderSummary.customerAlsoBought.addToOrder'),
-                    action: async id => await addToCheckout(id, 1),
+                    action: async (id: string) => await addToCheckout(id, 1),
                 }}
             />
         );

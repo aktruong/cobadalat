@@ -33,6 +33,7 @@ import { useChannels } from '@/src/state/channels';
 import { Tooltip } from '@/src/components/molecules/Tooltip';
 
 type FormValues = CreateCustomerType & {
+    fullName?: string;
     deliveryMethod?: string;
     shippingDifferentThanBilling?: boolean;
     shipping: CreateAddressType;
@@ -163,8 +164,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
             }
 
             // Kiểm tra thông tin thanh toán
-            if (!billing.streetLine1 || !billing.city || !billing.province) {
-                setError('root', { message: t('orderForm.errors.billing.required') });
+            if (!billing.streetLine1) {
+                setError('billing.streetLine1', { message: t('orderForm.errors.streetLine1.required') });
+                return;
+            }
+            if (!billing.city) {
+                setError('billing.city', { message: t('orderForm.errors.city.required') });
+                return;
+            }
+            if (!billing.province) {
+                setError('billing.province', { message: t('orderForm.errors.province.required') });
                 return;
             }
 
@@ -252,7 +261,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
             }
 
             if (setOrderBillingAddress?.__typename !== 'Order') {
-                setError('root', { message: tErrors(`errors.backend.${setOrderBillingAddress.errorCode}`) });
+                setError('root', { message: 'Có lỗi xảy ra. Vui lòng thử lại sau.' });
                 return;
             }
 
@@ -347,7 +356,6 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
             <Form onSubmit={handleSubmit(onSubmit)} noValidate>
                 <Container w100 gap="10rem">
                     <OrderSummary
-                        title="Đơn hàng"
                         shipping={
                             shippingMethods ? (
                                 <DeliveryMethodWrapper>

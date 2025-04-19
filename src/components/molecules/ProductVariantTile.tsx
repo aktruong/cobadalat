@@ -1,124 +1,137 @@
-import styled from '@emotion/styled';
+import { Stack, Link, TP } from '@/src/components/atoms/';
 import { ProductVariantTileType } from '@/src/graphql/selectors';
+import { priceFormatter } from '@/src/util/priceFormatter';
+import styled from '@emotion/styled';
 import React from 'react';
-import { Stack, Price, Link, TP, ProductImage } from '@/src/components/atoms';
-import { Button } from './Button';
-import { Ratings } from './Ratings';
+import Image from 'next/image';
+import { useTranslation } from 'next-i18next';
+import { useCart } from '@/src/state/cart';
 
-interface ProductVariantTileProps {
-    variant: ProductVariantTileType;
-    addToCart?: { text: string; action: (id: string) => Promise<void> };
+export const ProductVariantTile: React.FC<{
+    product: ProductVariantTileType;
     lazy?: boolean;
-    withoutRatings?: boolean;
-    withoutRedirect?: boolean;
-    displayAllCategories?: boolean;
-}
+}> = ({ product, lazy }) => {
+    const { t } = useTranslation('common');
+    const { addToCart } = useCart();
 
-export const ProductVariantTile: React.FC<ProductVariantTileProps> = ({
-    variant,
-    addToCart,
-    lazy,
-    // this is temp until we have ratings
-    withoutRatings = true,
-    withoutRedirect,
-    displayAllCategories,
-}) => {
-    const src = variant.featuredAsset?.preview ?? variant.product?.featuredAsset?.preview;
-    const ImageLink = withoutRedirect ? ImageContainer : LinkContainer;
-    const TextWrapper = withoutRedirect ? TextContainer : TextRedirectContainer;
-    const CategoryWrapper = withoutRedirect ? CategoryBlock : CategoryLinkBlock;
+    const handleAddToCart = () => {
+        addToCart(product.id, 1, true);
+    };
 
     return (
-        <Stack column key={variant.name} gap="0.5rem">
-            <Stack style={{ position: 'relative', width: '32rem' }}>
-                <Categories>
-                    {variant.product.collections
-                        .filter(c => c.slug !== 'all' && c.slug !== 'search')
-                        .sort(() => -1)
-                        .slice(0, displayAllCategories ? undefined : 1)
-                        .map(c => {
-                            const href =
-                                c?.parent?.slug !== '__root_collection__'
-                                    ? `/collections/${c?.parent?.slug}/${c?.slug}`
-                                    : `/collections/${c?.slug}`;
-                            return (
-                                <CategoryWrapper href={href} key={c.slug}>
-                                    <TP
-                                        size="1.25rem"
-                                        color="contrast"
-                                        upperCase
-                                        weight={500}
-                                        style={{ letterSpacing: '0.5px' }}>
-                                        {c.name}
-                                    </TP>
-                                </CategoryWrapper>
-                            );
-                        })}
-                </Categories>
-                <ImageLink href={`/products/${variant.product.slug}?variant=${variant.id}`}>
-                    <ProductImage
-                        {...(lazy ? { lazy: true } : {})}
-                        src={src}
-                        size={'popup'}
-                        alt={variant.name}
-                        title={variant.name}
+        <Main column gap="1rem">
+            <Link href={`/products/${product.product.slug}/`}>
+                <ImageWrapper>
+                    <Image
+                        src={product.featuredAsset?.preview || '/images/placeholder.png'}
+                        alt={product.name}
+                        width={300}
+                        height={300}
+                        loading={lazy ? 'lazy' : 'eager'}
+                        style={{
+                            width: '100%',
+                            height: 'auto',
+                            objectFit: 'cover'
+                        }}
                     />
-                </ImageLink>
+                </ImageWrapper>
+            </Link>
+            <Stack column gap="0.25rem">
+                <Stack column gap="0.5rem">
+                    <Link href={`/products/${product.product.slug}/`}>
+                        <ProductName>{product.name}</ProductName>
+                    </Link>
+                </Stack>
+                <ProductPrice gap="0.25rem">
+                    <ProductPriceValue>{priceFormatter(product.priceWithTax, product.currencyCode)}</ProductPriceValue>
+                    <AddToCartButton onClick={handleAddToCart}>
+                        Thêm
+                    </AddToCartButton>
+                </ProductPrice>
             </Stack>
-            <Stack column gap="2rem">
-                <TextWrapper href={`/products/${variant.product.slug}?variant=${variant.id}`}>
-                    <Stack column gap="0.5rem">
-                        <TP>{variant.name}</TP>
-                        <Price price={variant.priceWithTax} currencyCode={variant.currencyCode} />
-                    </Stack>
-                    {!withoutRatings && <Ratings rating={Math.random() * 5} />}
-                </TextWrapper>
-                {addToCart ? <Button onClick={() => addToCart.action(variant.id)}>{addToCart.text}</Button> : null}
-            </Stack>
-        </Stack>
+        </Main>
     );
 };
 
-const TextContainer = styled(Stack)`
-    margin-top: 0.75rem;
-`;
-
-const TextRedirectContainer = styled(Link)`
-    margin-top: 0.75rem;
-`;
-
-const ImageContainer = styled(Stack)`
+const ImageWrapper = styled.div`
     position: relative;
-`;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
+    background: ${p => p.theme.gray(100)};
 
-const LinkContainer = styled(Link)`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-`;
-
-const CategoryBlock = styled(Stack)`
-    padding: 1rem;
-    background-color: ${({ theme }) => theme.tile.background};
-`;
-
-const CategoryLinkBlock = styled(Link)`
-    padding: 1rem;
-
-    background-color: ${({ theme }) => theme.tile.background};
-
-    @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
-        :hover {
-            background-color: ${({ theme }) => theme.tile.hover};
-        }
+    img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 `;
 
-const Categories = styled(Stack)`
-    position: absolute;
-    top: 0;
-    left: 0;
-    flex-wrap: wrap;
-    gap: 1rem;
-    z-index: 1;
+const ProductName = styled.div`
+    font-weight: 700;
+    color: ${p => p.theme.gray(900)};
+    font-size: 2.25rem;
+`;
+
+const ProductPrice = styled(Stack)`
+    font-size: 1.875rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+`;
+
+const ProductPriceValue = styled(Stack)`
+    font-weight: 600;
+`;
+
+const Main = styled(Stack)`
+    font-size: 2.25rem;
+    position: relative;
+    width: 100%;
+    font-weight: 500;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    padding: 1.5rem;
+    background-color: ${p => p.theme.gray(0)};
+    
+    &:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    @media (min-width: ${({ theme }) => theme.breakpoints.xl}) {
+        max-width: 35.5rem;
+    }
+`;
+
+const AddToCartButton = styled.button`
+    background-color: #1877F2;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 8rem;
+    
+    &:hover {
+        background-color: #166FE5;
+        transform: translateY(-1px);
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: ${p => p.theme.breakpoints.sm}) {
+        padding: 1rem 2rem;
+        font-size: 2rem;
+        min-width: 10rem;
+    }
 `;
