@@ -59,6 +59,16 @@ const isAddressesEqual = (a: object, b?: object) => {
     }
 };
 
+const StyledLabel = styled.label`
+    font-size: 1.5rem;
+`;
+
+const StyledInput = styled(Input)`
+    & > label {
+        font-size: 1.5rem;
+    }
+`;
+
 export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, activeCustomer, shippingMethods }) => {
     const ctx = useChannels();
     const { activeOrder, changeShippingMethod } = useCheckout();
@@ -94,7 +104,11 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
             shippingDifferentThanBilling: defaultShippingAddress
                 ? !isAddressesEqual(defaultShippingAddress, defaultBillingAddress)
                 : false,
-            billing: { countryCode },
+            billing: { 
+                countryCode,
+                postalCode: '66000'
+            },
+            terms: true,
             // NIP: defaultBillingAddress?.customFields?.NIP ?? '',
             // userNeedInvoice: defaultBillingAddress?.customFields?.NIP ? true : false,
         },
@@ -133,21 +147,85 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
         billing,
         shipping,
         phoneNumber,
-        // NIP,
         shippingDifferentThanBilling,
         createAccount,
         password,
     }) => {
         try {
+            // Kiểm tra phương thức vận chuyển
+            if (!deliveryMethod) {
+                setError('deliveryMethod', { message: t('deliveryMethod.errors.required') });
+                return;
+            }
+
             if (deliveryMethod && activeOrder?.shippingLines[0]?.shippingMethod.id !== deliveryMethod) {
                 await changeShippingMethod(deliveryMethod);
             }
+
+            // Kiểm tra thông tin thanh toán
+            if (!billing.streetLine1 || !billing.city || !billing.province) {
+                setError('root', { message: t('orderForm.errors.billing.required') });
+                return;
+            }
+
+            // Kiểm tra trạng thái order trước khi tiếp tục
+            if (!activeOrder) {
+                console.log('No active order found, redirecting to home');
+                push('/');
+                return;
+            }
+
             const { nextOrderStates } = await storefrontApiQuery(ctx)({ nextOrderStates: true });
             if (!nextOrderStates.includes('ArrangingPayment')) {
                 setError('root', { message: tErrors(`errors.backend.UNKNOWN_ERROR`) });
                 return;
             }
+
+            // Set customer trước khi set địa chỉ
+            if (!activeCustomer) {
+                console.log('Active Customer before setCustomerForOrder:', activeCustomer);
+                const { setCustomerForOrder } = await storefrontApiMutation(ctx)({
+                    setCustomerForOrder: [
+                        { input: { emailAddress, firstName, lastName, phoneNumber } },
+                        {
+                            __typename: true,
+                            '...on Order': { id: true },
+                            '...on AlreadyLoggedInError': { message: true, errorCode: true },
+                            '...on EmailAddressConflictError': { message: true, errorCode: true },
+                            '...on GuestCheckoutError': { message: true, errorCode: true },
+                            '...on NoActiveOrderError': { message: true, errorCode: true },
+                        },
+                    ],
+                });
+
+                if (setCustomerForOrder?.__typename === 'NoActiveOrderError') {
+                    console.log('NoActiveOrderError from setCustomerForOrder');
+                    push('/');
+                    return;
+                }
+
+                if (setCustomerForOrder?.__typename !== 'Order') {
+                    if (setCustomerForOrder.__typename === 'EmailAddressConflictError') {
+                        setError('emailAddress', {
+                            message: tErrors(`errors.backend.${setCustomerForOrder.errorCode}`),
+                        });
+                        setFocus('emailAddress');
+                    } else {
+                        setError('root', { message: tErrors(`errors.backend.${setCustomerForOrder.errorCode}`) });
+                    }
+                    return;
+                }
+            }
+
+            // Kiểm tra lại trạng thái order sau khi set customer
+            if (!activeOrder) {
+                console.log('No active order found after setCustomerForOrder, redirecting to home');
+                push('/');
+                return;
+            }
+
             // Set the billing address for the order
+            console.log('Before setOrderBillingAddress:', { activeOrder, activeCustomer });
             const { setOrderBillingAddress } = await storefrontApiMutation(ctx)({
                 setOrderBillingAddress: [
                     {
@@ -155,7 +233,6 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                             ...billing,
                             defaultBillingAddress: false,
                             defaultShippingAddress: false,
-                            // customFields: { NIP }
                         },
                     },
                     {
@@ -165,6 +242,14 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                     },
                 ],
             });
+
+            console.log('After setOrderBillingAddress:', { setOrderBillingAddress });
+
+            if (setOrderBillingAddress?.__typename === 'NoActiveOrderError') {
+                console.log('NoActiveOrderError from setOrderBillingAddress');
+                push('/');
+                return;
+            }
 
             if (setOrderBillingAddress?.__typename !== 'Order') {
                 setError('root', { message: tErrors(`errors.backend.${setOrderBillingAddress.errorCode}`) });
@@ -186,7 +271,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                 });
 
                 if (setOrderShippingAddress?.__typename === 'NoActiveOrderError') {
-                    setError('root', { message: tErrors(`errors.backend.NO_ACTIVE_ORDER_ERROR`) });
+                    console.log('NoActiveOrderError from setOrderShippingAddress');
+                    push('/');
                     return;
                 }
             } else {
@@ -203,46 +289,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                 });
 
                 if (setOrderShippingAddress?.__typename === 'NoActiveOrderError') {
-                    setError('root', { message: tErrors(`errors.backend.NO_ACTIVE_ORDER_ERROR`) });
-                    return;
-                }
-            }
-
-            if (!activeCustomer) {
-                // Xóa cookie và logout trước khi setCustomerForOrder
-                try {
-                    await storefrontApiMutation(ctx)({
-                        logout: true
-                    });
-                } catch (e) {
-                    console.log('Logout error:', e);
-                }
-
-                console.log('Active Customer before setCustomerForOrder:', activeCustomer);
-                const { setCustomerForOrder } = await storefrontApiMutation(ctx)({
-                    setCustomerForOrder: [
-                        { input: { emailAddress, firstName, lastName, phoneNumber } },
-                        {
-                            __typename: true,
-                            '...on Order': { id: true },
-                            '...on AlreadyLoggedInError': { message: true, errorCode: true },
-                            '...on EmailAddressConflictError': { message: true, errorCode: true },
-                            '...on GuestCheckoutError': { message: true, errorCode: true },
-                            '...on NoActiveOrderError': { message: true, errorCode: true },
-                        },
-                    ],
-                });
-
-                if (setCustomerForOrder?.__typename !== 'Order') {
-                    if (setCustomerForOrder.__typename === 'EmailAddressConflictError') {
-                        // TODO: IN THIS CASE WE SHOULD SHOW THE LOGIN FORM or ADD A LINK TO LOGIN
-                        setError('emailAddress', {
-                            message: tErrors(`errors.backend.${setCustomerForOrder.errorCode}`),
-                        });
-                        setFocus('emailAddress');
-                    } else {
-                        setError('root', { message: tErrors(`errors.backend.${setCustomerForOrder.errorCode}`) });
-                    }
+                    console.log('NoActiveOrderError from setOrderShippingAddress');
+                    push('/');
                     return;
                 }
             }
@@ -265,34 +313,6 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                 ],
             });
 
-            // After all create account if needed and password is provided
-            if (!activeCustomer && createAccount && password) {
-                await storefrontApiMutation(ctx)({
-                    registerCustomerAccount: [
-                        { input: { emailAddress, firstName, lastName, phoneNumber, password } },
-                        {
-                            __typename: true,
-                            '...on MissingPasswordError': {
-                                message: true,
-                                errorCode: true,
-                            },
-                            '...on NativeAuthStrategyError': {
-                                message: true,
-                                errorCode: true,
-                            },
-                            '...on PasswordValidationError': {
-                                errorCode: true,
-                                message: true,
-                                validationErrorMessage: true,
-                            },
-                            '...on Success': {
-                                success: true,
-                            },
-                        },
-                    ],
-                });
-            }
-
             if (!transitionOrderToState) {
                 setError('root', { message: tErrors(`errors.backend.UNKNOWN_ERROR`) });
                 return;
@@ -302,7 +322,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                 setError('root', { message: tErrors(`errors.backend.${transitionOrderToState.errorCode}`) });
                 return;
             }
-            // Redirect to payment page
+
+            // Chuyển hướng đến trang thanh toán
             push('/checkout/payment');
         } catch (error) {
             setError('root', { message: tErrors(`errors.backend.UNKNOWN_ERROR`) });
@@ -326,6 +347,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
             <Form onSubmit={handleSubmit(onSubmit)} noValidate>
                 <Container w100 gap="10rem">
                     <OrderSummary
+                        title="Đơn hàng"
                         shipping={
                             shippingMethods ? (
                                 <DeliveryMethodWrapper>
@@ -347,10 +369,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                             <Stack column gap="2.5rem" justifyCenter itemsCenter>
                                 <StyledButton loading={isSubmitting} type="submit">
                                     <TP color="contrast" upperCase>
-                                        {t('orderForm.continueToPayment')}
+                                        CHỌN LOẠI THANH TOÁN
                                     </TP>
                                 </StyledButton>
-                                <LinkButton href="/">{t('orderForm.continueShopping')}</LinkButton>
+                                <LinkButton href="/">CHỌN THÊM</LinkButton>
                             </Stack>
                         }
                     />
@@ -367,43 +389,45 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                                         ) : null}
                                     </AnimatePresence>
                                     <TH2 size="2rem" weight={500}>
-                                        {t('orderForm.contactInfo')}
+                                        Thông tin giao hàng
                                     </TH2>
                                 </Stack>
 
                                 <Stack w100 column gap="1.5rem">
                                     <Stack w100 gap="1.5rem">
-                                        <Input
-                                            {...register('firstName', {
-                                                onChange: e => {
-                                                    const fullName = e.target.value.trim();
-                                                    if (fullName) {
-                                                        // Tách họ và tên
-                                                        const nameParts = fullName.split(' ');
-                                                        const firstName = nameParts[0];
-                                                        const lastName = nameParts.slice(1).join(' ');
-                                                        
-                                                        // Cập nhật giá trị cho các trường
-                                                        setValue('firstName', firstName);
-                                                        setValue('lastName', lastName);
+                                        <div style={{ display: 'none' }}>
+                                            <Input
+                                                {...register('firstName', {
+                                                    onChange: e => {
+                                                        const fullName = e.target.value.trim();
+                                                        if (fullName) {
+                                                            // Tách họ và tên
+                                                            const nameParts = fullName.split(' ');
+                                                            const firstName = nameParts[0];
+                                                            const lastName = nameParts.slice(1).join(' ');
+                                                            
+                                                            // Cập nhật giá trị cho các trường
+                                                            setValue('firstName', firstName);
+                                                            setValue('lastName', lastName);
+                                                        }
                                                     }
-                                                }
-                                            })}
-                                            placeholder={t('orderForm.placeholders.firstName')}
-                                            label={t('orderForm.firstName')}
-                                            error={errors.firstName}
-                                            required
-                                        />
-                                        <Input
-                                            {...register('lastName')}
-                                            placeholder={t('orderForm.placeholders.lastName')}
-                                            label={t('orderForm.lastName')}
-                                            error={errors.lastName}
-                                            required
-                                        />
+                                                })}
+                                                placeholder={t('orderForm.placeholders.firstName')}
+                                                label=""
+                                                error={errors.firstName}
+                                                required
+                                            />
+                                            <Input
+                                                {...register('lastName')}
+                                                placeholder={t('orderForm.placeholders.lastName')}
+                                                label=""
+                                                error={errors.lastName}
+                                                required
+                                            />
+                                        </div>
                                     </Stack>
-                                    <Stack w100 gap="1.5rem">
-                                        <Input
+                                    <Stack w100 column gap="1.5rem">
+                                        <StyledInput
                                             {...register('fullName', {
                                                 onChange: e => {
                                                     const fullName = e.target.value.trim();
@@ -411,20 +435,21 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                                                         // Tách họ và tên
                                                         const nameParts = fullName.split(' ');
                                                         const firstName = nameParts[0];
-                                                        const lastName = nameParts.slice(1).join(' ');
+                                                        const lastName = nameParts.slice(1).join(' ') || firstName;
                                                         
                                                         // Cập nhật giá trị cho các trường
                                                         setValue('firstName', firstName);
                                                         setValue('lastName', lastName);
+                                                        // Cập nhật giá trị cho trường billing.fullName
+                                                        setValue('billing.fullName', fullName);
                                                     }
                                                 }
                                             })}
-                                            placeholder={t('orderForm.placeholders.fullName')}
-                                            label={t('orderForm.fullName')}
+                                            label="Họ và tên:"
                                             error={errors.fullName}
                                             required
                                         />
-                                        <Input
+                                        <StyledInput
                                             {...register('phoneNumber', {
                                                 onChange: e => {
                                                     const phone = e.target.value.replace(/[^0-9]/g, '');
@@ -435,9 +460,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                                                     }
                                                 },
                                             })}
-                                            placeholder={t('orderForm.placeholders.phoneNumber')}
                                             type="tel"
-                                            label={t('orderForm.phone')}
+                                            label="Số điện thoại:"
                                             error={errors.phoneNumber}
                                         />
                                     </Stack>
@@ -446,49 +470,50 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
 
                             {/* Shipping Part */}
                             <BillingWrapper column>
-                                <TH2 size="2rem" weight={500} style={{ marginBottom: '1.75rem' }}>
+                                <TH2 size="2rem" weight={500} style={{ marginBottom: '1.75rem', display: 'none' }}>
                                     {t('orderForm.billingInfo')}
                                 </TH2>
                                 <Stack w100 column gap="1.5rem">
-                                    <Stack w100 gap="1.5rem">
-                                        <Input
-                                            {...register('billing.fullName')}
-                                            placeholder={t('orderForm.placeholders.fullName')}
-                                            label={t('orderForm.fullName')}
-                                            error={errors.billing?.fullName}
-                                            required
-                                        />
-                                        <Input
-                                            {...register('billing.city')}
-                                            placeholder={t('orderForm.placeholders.city')}
-                                            label={t('orderForm.city')}
-                                            error={errors.billing?.city}
-                                            required
-                                        />
-                                    </Stack>
-                                    <Stack w100 gap="1.5rem">
+                                    <Stack w100 column gap="1.5rem">
                                         <Input
                                             {...register('billing.streetLine1')}
-                                            placeholder={t('orderForm.placeholders.streetLine1')}
-                                            label={t('orderForm.streetLine1')}
+                                            label="Địa chỉ:"
                                             error={errors.billing?.streetLine1}
                                             required
                                         />
                                         <Input
                                             {...register('billing.streetLine2')}
-                                            placeholder={t('orderForm.placeholders.streetLine2')}
-                                            label={t('orderForm.streetLine2')}
+                                            label="Phường:"
                                             error={errors.billing?.streetLine2}
                                         />
-                                    </Stack>
-                                    <Stack w100 gap="1.5rem">
                                         <Input
-                                            {...register('billing.province')}
-                                            placeholder={t('orderForm.placeholders.province')}
-                                            label={t('orderForm.province')}
-                                            error={errors.billing?.province}
+                                            {...register('billing.city')}
+                                            label="Thành phố/Huyện:"
+                                            error={errors.billing?.city}
                                             required
                                         />
+                                        <Input
+                                            {...register('billing.province')}
+                                            label="Tỉnh:"
+                                            error={errors.billing?.province}
+                                            required
+                                            defaultValue="Lâm Đồng"
+                                        />
+                                        {availableCountries && (
+                                            <Stack style={{ display: 'none' }}>
+                                                <CountrySelect
+                                                    {...register('billing.countryCode')}
+                                                    placeholder={t('orderForm.placeholders.countryCode')}
+                                                    label={t('orderForm.countryCode')}
+                                                    defaultValue={countryCode}
+                                                    options={availableCountries}
+                                                    error={errors.billing?.countryCode}
+                                                    required
+                                                />
+                                            </Stack>
+                                        )}
+                                    </Stack>
+                                    <div style={{ display: 'none' }}>
                                         <Input
                                             {...register('billing.postalCode')}
                                             placeholder={t('orderForm.placeholders.postalCode')}
@@ -496,145 +521,36 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                                             error={errors.billing?.postalCode}
                                             required
                                         />
-                                    </Stack>
-                                    <Stack w100 gap="1.5rem">
+                                    </div>
+                                    <Stack w100 gap="1.5rem" style={{ display: 'none' }}>
                                         <Input
                                             {...register('billing.company')}
                                             placeholder={t('orderForm.placeholders.company')}
                                             label={t('orderForm.company')}
                                             error={errors.billing?.company}
                                         />
-                                        {availableCountries && (
-                                            <CountrySelect
-                                                {...register('billing.countryCode')}
-                                                placeholder={t('orderForm.placeholders.countryCode')}
-                                                label={t('orderForm.countryCode')}
-                                                defaultValue={countryCode}
-                                                options={availableCountries}
-                                                error={errors.billing?.countryCode}
-                                                required
-                                            />
-                                        )}
                                     </Stack>
                                 </Stack>
                             </BillingWrapper>
                         </Stack>
 
-                        <Stack justifyBetween itemsCenter>
-                            {/* <CheckBox
-                        {...register('userNeedInvoice', {
-                            onChange: e => {
-                                setValue('userNeedInvoice', e.target.checked);
-                                setValue('NIP', '');
-                            },
-                        })}
-                        label={t('orderForm.userNeedInvoice')}
-                    /> */}
+                        <Stack justifyBetween itemsCenter style={{ display: 'none' }}>
                             <CheckBox
-                                {...register('shippingDifferentThanBilling')}
+                                {...register('shippingDifferentThanBilling', {
+                                    onChange: e => {
+                                        if (e.target.checked) {
+                                            setValue('shipping.postalCode', '66000');
+                                        }
+                                    }
+                                })}
                                 checked={watch('shippingDifferentThanBilling')}
                                 label={t('orderForm.shippingDifferentThanBilling')}
                             />
                         </Stack>
 
-                        {/* NIP */}
-                        {/* <AnimatePresence>
-                    {watch('userNeedInvoice') && (
-                        <FVInputWrapper
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}>
-                            <Input
-                                {...register('NIP')}
-                                label={t('orderForm.NIP')}
-                                error={errors.NIP}
-                                placeholder="NIP"
-                                required
-                            />
-                        </FVInputWrapper>
-                    )}
-                </AnimatePresence> */}
-
-                        {/* Billing Part */}
-                        <AnimatePresence>
-                            {watch('shippingDifferentThanBilling') && (
-                                <ShippingWrapper
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.2 }}>
-                                    <TH2 size="2rem" weight={500} style={{ marginBottom: '1.75rem' }}>
-                                        {t('orderForm.shippingInfo')}
-                                    </TH2>
-                                    <Stack column>
-                                        <Stack w100 gap="1.75rem">
-                                            <Input
-                                                {...register('shipping.fullName')}
-                                                label={t('orderForm.fullName')}
-                                                error={errors.shipping?.fullName}
-                                                required
-                                            />
-                                            <Input
-                                                {...register('shipping.company')}
-                                                label={t('orderForm.company')}
-                                                error={errors.shipping?.company}
-                                            />
-                                        </Stack>
-                                        <Stack w100 gap="1.75rem">
-                                            <Input
-                                                {...register('shipping.streetLine1')}
-                                                label={t('orderForm.streetLine1')}
-                                                error={errors.shipping?.province}
-                                                required
-                                            />
-                                            <Input
-                                                {...register('shipping.streetLine2')}
-                                                label={t('orderForm.streetLine2')}
-                                                error={errors.shipping?.postalCode}
-                                                required
-                                            />
-                                        </Stack>
-                                        <Stack w100 gap="1.75rem">
-                                            <Input
-                                                {...register('shipping.city')}
-                                                label={t('orderForm.city')}
-                                                error={errors.shipping?.city}
-                                                required
-                                            />
-                                            {availableCountries && (
-                                                <CountrySelect
-                                                    {...register('shipping.countryCode')}
-                                                    label={t('orderForm.countryCode')}
-                                                    defaultValue={countryCode}
-                                                    options={availableCountries}
-                                                    error={errors.shipping?.countryCode}
-                                                    required
-                                                />
-                                            )}
-                                        </Stack>
-                                        <Stack gap="1.75rem">
-                                            <Input
-                                                {...register('shipping.province')}
-                                                label={t('orderForm.province')}
-                                                error={errors.shipping?.province}
-                                                required
-                                            />
-                                            <Input
-                                                {...register('shipping.postalCode')}
-                                                label={t('orderForm.postalCode')}
-                                                error={errors.shipping?.postalCode}
-                                                required
-                                            />
-                                        </Stack>
-                                    </Stack>
-                                </ShippingWrapper>
-                            )}
-                        </AnimatePresence>
-
                         {/* Create Account */}
                         {!activeCustomer?.id ? (
-                            <Stack column gap="1.25rem">
+                            <Stack column gap="1.25rem" style={{ display: 'none' }}>
                                 <Stack itemsCenter gap="1rem">
                                     <CheckBox {...register('createAccount')} label={t('orderForm.createAccount')} />
                                     <Stack itemsCenter justifyCenter>
@@ -669,7 +585,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ availableCountries, active
                         ) : null}
 
                         {/* Submit */}
-                        <Stack column justifyBetween gap="0.5rem">
+                        <Stack column justifyBetween gap="0.5rem" style={{ display: 'none' }}>
                             <CheckBox
                                 {...register('terms')}
                                 // error={errors.terms}

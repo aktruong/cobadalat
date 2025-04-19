@@ -80,7 +80,7 @@ export const Navigation: React.FC<NavigationProps> = ({ navigation, categories, 
                     <Stack itemsCenter justifyBetween gap="5rem" w100>
                         <Stack itemsCenter>
                             <Link ariaLabel={'Home'} href={'/'}>
-                                <LogoAexol width={60} />
+                                <LogoImage src="/images/logo.webp" alt="Logo" />
                             </Link>
                         </Stack>
                         <AnimatePresence>
@@ -129,7 +129,7 @@ const StickyContainer = styled.nav`
     align-items: center;
 
     width: 100%;
-    padding: 2rem;
+    padding: 1rem 2rem;
     position: sticky;
     top: 0;
     background: ${p => p.theme.gray(0)};
@@ -143,7 +143,7 @@ const StickyContainer = styled.nav`
     }
 
     svg {
-        max-height: 4rem;
+        max-height: 3rem;
     }
 `;
 
@@ -161,4 +161,15 @@ const DesktopNavigationContainer = styled(motion.div)`
     @media (min-width: ${p => p.theme.breakpoints.md}) {
         display: block;
     }
+`;
+
+const LogoImage = styled.img`
+    width: 40px;
+    height: auto;
+`;
+
+const LogoLink = styled(Link)`
+    display: flex;
+    align-items: center;
+    justify-content: center;
 `;

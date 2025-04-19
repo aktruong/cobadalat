@@ -48,10 +48,10 @@ export const CustomHelmet: React.FC<{
             product?.name as string,
         ],
         faviconUrl: `/favicon.ico`,
-        logo: `/images/aexol_full_logo.png`,
+        logo: `/images/logo.webp`,
         facebook: 'https://www.facebook.com/Aexol',
         twitter: 'https://twitter.com/aexol',
-        image: product?.featuredAsset?.preview || collection?.featuredAsset?.preview || `/images/aexol_full_logo.png`,
+        image: product?.featuredAsset?.preview || collection?.featuredAsset?.preview || `/images/logo.webp`,
     };
     // !seo.keywords.some(keyword => title.includes(keyword)) && console.log(`no keyword in title of ${seo.pageUrl}`);
     // !seo.keywords.some(keyword => seo.description.includes(keyword)) &&
@@ -137,7 +137,7 @@ const doStoreLD = () => {
         '@type': 'OnlineStore',
         name: 'Aexol demo shop',
         description: 'Aexol demo shop is for demonstration purposes, change des to fit your usecase',
-        image: '/images/aexol_full_logo.png',
+        image: '/images/logo.webp',
         parentOrganization: {
             '@type': 'OnlineBusiness',
             name: 'Aexol',

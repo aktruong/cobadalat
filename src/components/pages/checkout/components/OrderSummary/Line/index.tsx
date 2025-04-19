@@ -56,7 +56,7 @@ export const Line: React.FC<LineProps> = ({
                                     </TypoGraphy>
                                 )}
                                 <TypoGraphy size="1.25rem" weight={600}>
-                                    {t('orderSummary.quantity')} {quantity}
+                                    Số lượng: {quantity}
                                 </TypoGraphy>
                             </Stack>
                         </Stack>
@@ -93,7 +93,7 @@ export const Line: React.FC<LineProps> = ({
                                 </Action>
                             </Stack>
                             <Action onClick={() => removeFromCheckout(id)}>
-                                <TP size="1.25rem">{t('orderSummary.remove')}</TP>
+                                <TP size="1.25rem">Xóa</TP>
                                 <Trash2 size={16} />
                             </Action>
                         </>

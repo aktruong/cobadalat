@@ -13,9 +13,13 @@ interface Props {
 }
 
 export const PaymentMethod: React.FC<Props> = ({ selected, onChange, error, paymentMethods }) => {
+    const handleSelect = (id: string) => {
+        onChange(id);
+    };
+
     return (
         <Stack w100 column>
-            <Wrapper gap="2rem">
+            <Wrapper>
                 {paymentMethods?.map(({ id, name, description }) => (
                     <Box
                         justifyCenter
@@ -25,14 +29,16 @@ export const PaymentMethod: React.FC<Props> = ({ selected, onChange, error, paym
                         selected={selected === id}
                         key={id}
                         column
-                        onClick={() => onChange(id)}>
-                        <TP size="1.5rem" weight={400}>
+                        onClick={() => handleSelect(id)}>
+                        <TP size="3rem" weight={400}>
                             {name}
                         </TP>
                         {description && (
-                            <TP size="1rem" color="subtitle">
-                                {description}
-                            </TP>
+                            <TP 
+                                size="2rem" 
+                                color="subtitle"
+                                dangerouslySetInnerHTML={{ __html: description }}
+                            />
                         )}
                     </Box>
                 ))}
@@ -41,20 +47,32 @@ export const PaymentMethod: React.FC<Props> = ({ selected, onChange, error, paym
     );
 };
 
-const Wrapper = styled(Stack)`
+const Wrapper = styled.div`
     margin: 1.6rem 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 `;
 
 const Box = styled(Stack)<{ selected: boolean; error: boolean }>`
     cursor: pointer;
     padding: 2rem;
-    border: 1px solid ${p => (p.error ? p.theme.error : p.selected ? p.theme.gray(800) : p.theme.gray(200))};
+    border: 1px solid ${p => (p.error ? p.theme.error : p.selected ? '#1877F2' : p.theme.gray(200))};
+    width: 100%;
+    background-color: ${p => p.selected ? '#1877F2' : 'transparent'};
+    transition: all 0.3s ease;
 
     &:hover {
         border: 1px solid ${p => p.theme.gray(400)};
+        background-color: ${p => p.selected ? '#1877F2' : '#F5F5F5'};
     }
 
     & > div {
-        color: ${p => (p.selected ? p.theme.gray(1000) : p.theme.text.subtitle)};
+        color: ${p => (p.selected ? '#FFFFFF' : p.theme.text.subtitle)};
+        & > p {
+            font-size: 1rem;
+            color: ${p => (p.selected ? '#FFFFFF' : p.theme.text.subtitle)};
+        }
     }
 `; 

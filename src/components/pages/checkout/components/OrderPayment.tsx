@@ -1,7 +1,7 @@
 import { storefrontApiMutation } from '@/src/graphql/client';
 import { AvailablePaymentMethodsType } from '@/src/graphql/selectors';
 import React, { InputHTMLAttributes, forwardRef, useEffect, useState } from 'react';
-import { Stack, TP } from '@/src/components/atoms';
+import { Stack, TP, TH2 } from '@/src/components/atoms';
 
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { useCheckout } from '@/src/state/checkout';
@@ -51,8 +51,13 @@ export const OrderPayment: React.FC<OrderPaymentProps> = ({ availablePaymentMeth
         watch,
         handleSubmit,
         register,
-        formState: { isSubmitting, isValid },
-    } = useForm<FormValues>({});
+        formState: { isSubmitting, isValid, errors },
+    } = useForm<FormValues>({
+        defaultValues: {
+            paymentMethod: availablePaymentMethods?.[0]?.id
+        },
+        mode: 'onChange'
+    });
 
     useEffect(() => {
         const initStripe = async () => {
@@ -122,11 +127,18 @@ export const OrderPayment: React.FC<OrderPaymentProps> = ({ availablePaymentMeth
     const onSubmit: SubmitHandler<FormValues> = async data => {
         try {
             setError(null);
-            console.log('Selected payment method:', data.paymentMethod);
-            console.log('Available payment methods:', availablePaymentMethods);
+            
+            if (!data.paymentMethod) {
+                setError(t('paymentMethod.selectToContinue'));
+                return;
+            }
 
             const selectedMethod = availablePaymentMethods?.find(m => m.id === data.paymentMethod);
-            console.log('Selected method details:', selectedMethod);
+            
+            if (!selectedMethod) {
+                setError(t('paymentMethod.notAvailable'));
+                return;
+            }
 
             const { addPaymentToOrder } = await storefrontApiMutation(ctx)({
                 addPaymentToOrder: [
@@ -204,15 +216,15 @@ export const OrderPayment: React.FC<OrderPaymentProps> = ({ availablePaymentMeth
             <Banner error={{ message: error ?? undefined }} clearErrors={() => setError(null)} />
             <PaymentForm onSubmit={handleSubmit(onSubmit)} noValidate>
                 <Stack w100 column style={{ position: 'relative' }}>
-                    <GridTitle>
-                        <TP size="1.5rem" weight={600}>
-                            {t('paymentMethod.title')}
-                        </TP>
-                    </GridTitle>
+                    <TH2 size="2rem" weight={500}>
+                        Phương thức thanh toán
+                    </TH2>
                     <PaymentMethod
                         selected={watch('paymentMethod')}
                         onChange={value => {
-                            register('paymentMethod', { value });
+                            register('paymentMethod').onChange({
+                                target: { value, name: 'paymentMethod' }
+                            });
                         }}
                         paymentMethods={availablePaymentMethods ?? []}
                     />
@@ -222,7 +234,7 @@ export const OrderPayment: React.FC<OrderPaymentProps> = ({ availablePaymentMeth
                     {isValid ? (
                         <AnimationStack initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                             <Button loading={isSubmitting} type="submit">
-                                {t('paymentMethod.submit')}
+                                ĐẶT HÀNG
                             </Button>
                         </AnimationStack>
                     ) : (

@@ -34,7 +34,7 @@ export const DeliveryMethod: React.FC<Props> = ({
                         key={id}
                         column
                         onClick={() => onChange(id)}>
-                        <TP size="1.5rem" weight={400}>
+                        <TP size="1.5rem" weight={400} style={{ color: selected === id ? '#FFFFFF' : undefined }}>
                             {name}
                         </TP>
                         <Price price={price} currencyCode={currencyCode} />
@@ -52,16 +52,24 @@ const Wrapper = styled(Stack)`
 const Box = styled(Stack)<{ selected: boolean; error: boolean }>`
     cursor: pointer;
     padding: 2rem;
-    border: 1px solid ${p => (p.error ? p.theme.error : p.selected ? p.theme.gray(800) : p.theme.gray(200))};
+    border: 1px solid ${p => (p.error ? p.theme.error : p.selected ? '#1877F2' : p.theme.gray(200))};
+    background-color: ${p => p.selected ? '#1877F2' : 'transparent'};
+    transition: all 0.3s ease;
 
     &:hover {
         border: 1px solid ${p => p.theme.gray(400)};
+        background-color: ${p => p.selected ? '#1877F2' : '#F5F5F5'};
     }
 
     & > div {
-        color: ${p => (p.selected ? p.theme.gray(1000) : p.theme.text.subtitle)};
+        color: ${p => (p.selected ? '#FFFFFF' : p.theme.text.subtitle)};
         & > p {
             font-size: 1rem;
+            color: ${p => (p.selected ? '#FFFFFF' : p.theme.text.subtitle)};
         }
+    }
+
+    & > div > div {
+        color: ${p => (p.selected ? '#FFFFFF' : p.theme.text.subtitle)};
     }
 `;

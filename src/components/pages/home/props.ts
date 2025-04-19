@@ -23,7 +23,7 @@ export const getStaticProps = async (ctx: ContextModel) => {
                     { 
                         input: { 
                             collectionSlug: collection.slug,
-                            take: 4, 
+                            take: 10, 
                             groupByProduct: true, 
                             sort: { price: SortOrder.ASC } 
                         } 

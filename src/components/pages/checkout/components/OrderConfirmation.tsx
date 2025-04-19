@@ -26,15 +26,15 @@ export const OrderConfirmation: React.FC<{ code: string; order?: OrderType }> = 
     return (
         <Wrapper column w100 gap="2.5rem">
             <Stack column gap="4rem">
-                <Stack justifyBetween w100 gap="2rem">
-                    <Stack w100 column gap="4rem">
+                <Stack justifyBetween w100 gap="2rem" style={{ flexDirection: 'column' }}>
+                    <OrderInfo w100 column gap="4rem">
                         <Stack itemsCenter gap="2rem">
                             {orderState === 'Cancelled' ? (
                                 <X color="red" size={44} />
                             ) : (
                                 <CheckCircle2 color="green" size={44} />
                             )}
-                            <TH2>{t('orderSummary.title')}</TH2>
+                            <TH2>Đơn hàng</TH2>
                         </Stack>
                         <TP size="2rem">
                             {orderState === 'Cancelled' ? (
@@ -43,41 +43,45 @@ export const OrderConfirmation: React.FC<{ code: string; order?: OrderType }> = 
                                     components={{ 1: <strong></strong> }}
                                     i18nKey="confirmation.orderCancelled"
                                     t={t}
-                                />
+                                >
+                                    Đơn hàng <strong>{code}</strong> đã bị hủy
+                                </Trans>
                             ) : (
                                 <Trans
                                     i18nKey="confirmation.orderReceived"
                                     t={t}
                                     values={{ code }}
                                     components={{ 1: <strong></strong> }}
-                                />
+                                >
+                                    Đơn hàng <strong>{code}</strong> đã được nhận
+                                </Trans>
                             )}
                         </TP>
-                    </Stack>
+                    </OrderInfo>
                     {orderState !== 'Cancelled' && (
-                        <Stack w100 column gap="1rem">
+                        <OrderSummary w100 column gap="1rem">
                             <Stack justifyBetween>
-                                <TP>{t('orderSummary.subtotal')}</TP>
+                                <TP>Tổng cộng</TP>
                                 <TP weight={600}>{priceFormatter(order?.subTotalWithTax || 0, currencyCode)}</TP>
                             </Stack>
                             <Stack justifyBetween>
-                                <TP>{t('orderSummary.discount')}</TP>
+                                <TP>Giảm giá</TP>
                                 <TP weight={600}>{priceFormatter(discounts, currencyCode)}</TP>
                             </Stack>
                             <Stack justifyBetween>
-                                <TP>{t('orderSummary.shipping')}</TP>
+                                <TP>Phí giao hàng</TP>
                                 <TP weight={600}> {priceFormatter(order?.shippingWithTax || 0, currencyCode)}</TP>
                             </Stack>
                             {order?.discounts && order?.discounts.length > 0 ? <Divider /> : null}
                             <Discounts withLabel discounts={order?.discounts} currencyCode={currencyCode} />
                             <Divider />
                             <Stack justifyBetween>
-                                <TP>{t('orderSummary.total')}</TP>
+                                <TP>Thành tiền</TP>
                                 <TP weight={600}>
                                     {priceFormatter((order?.totalWithTax ?? 0) - discounts, currencyCode)}
                                 </TP>
                             </Stack>
-                        </Stack>
+                        </OrderSummary>
                     )}
                 </Stack>
                 <Divider marginBlock="4rem" />
@@ -100,7 +104,7 @@ export const OrderConfirmation: React.FC<{ code: string; order?: OrderType }> = 
                                                 : line.productVariant.name}
                                         </TP>
                                         <Stack gap="0.75rem">
-                                            <TP size="1.5rem">{t('orderSummary.quantity')} </TP>
+                                            <TP size="1.5rem">Số lượng: </TP>
                                             <TP size="1.5rem" weight={500}>
                                                 {line.quantity}
                                             </TP>
@@ -125,4 +129,27 @@ export const OrderConfirmation: React.FC<{ code: string; order?: OrderType }> = 
 
 const Wrapper = styled(Stack)`
     margin: 12rem 0 0 0;
+    flex-direction: column;
+
+    @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+        flex-direction: row;
+    }
+`;
+
+const OrderInfo = styled(Stack)`
+    flex-direction: column;
+    width: 100%;
+
+    @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+        width: 50%;
+    }
+`;
+
+const OrderSummary = styled(Stack)`
+    flex-direction: column;
+    width: 100%;
+
+    @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+        width: 50%;
+    }
 `;

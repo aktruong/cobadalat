@@ -34,7 +34,7 @@ export const OrderSummary: React.FC<PropsWithChildren<OrderSummaryProps>> = ({ f
                 <Stack w100 column gap="2.5rem">
                     {/* <CheckoutStatus step={step} /> */}
                     <TH2 size="3rem" weight={500}>
-                        {t('orderSummary.title')}
+                        Đơn hàng
                     </TH2>
                     <Stack column>
                         {activeOrder?.lines.map(line => (
@@ -42,11 +42,11 @@ export const OrderSummary: React.FC<PropsWithChildren<OrderSummaryProps>> = ({ f
                         ))}
                         <Stack column gap="2.5rem">
                             <Stack justifyBetween>
-                                <TP>{t('orderSummary.subtotal')}</TP>
+                                <TP>Tổng cộng</TP>
                                 <TP>{priceFormatter(activeOrder?.subTotalWithTax ?? 0, currencyCode)}</TP>
                             </Stack>
                             <Stack justifyBetween>
-                                <TP>{t('orderSummary.shipping')}</TP>
+                                <TP>Phí giao hàng</TP>
                                 <TP>{priceFormatter(activeOrder?.shippingWithTax ?? 0, currencyCode)}</TP>
                             </Stack>
                             {!!shipping && jsEnabled && (
@@ -65,7 +65,7 @@ export const OrderSummary: React.FC<PropsWithChildren<OrderSummaryProps>> = ({ f
                             <Divider />
                             <Stack justifyBetween>
                                 <TP size="1.75rem" weight={600}>
-                                    {t('orderSummary.total')}
+                                    Thành tiền
                                 </TP>
                                 <TP size="1.75rem" weight={600}>
                                     {priceFormatter(activeOrder?.totalWithTax ?? 0, currencyCode)}
